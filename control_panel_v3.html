@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>لوحة التحكم</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0a0a1a;color:white;font-family:'Segoe UI',Tahoma,Arial,sans-serif;min-height:100vh;padding:10px;display:flex;flex-direction:column;gap:8px}
+.header{background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center}
+.header-title{color:#FFD700;font-size:14px;font-weight:bold}
+.status{font-size:10px;padding:3px 8px;border-radius:10px;background:rgba(255,255,255,0.1)}
+.status.ok{background:rgba(0,255,0,0.15);color:#4eff4e}
+.status.err{background:rgba(255,0,0,0.15);color:#ff6b6b}
+.countries-section{background:rgba(255,255,255,0.04);border-radius:12px;padding:10px}
+.countries-title{font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:8px;text-align:center}
+.countries-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.country-btn{
+  background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:12px;
+  padding:12px 6px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  cursor:pointer;font-family:inherit;color:white;
+  transition:all 0.15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.country-btn:active{transform:scale(0.92);background:rgba(255,215,0,0.25);border-color:#FFD700}
+.country-flag{font-size:26px}
+.country-name-btn{font-size:10px;color:rgba(255,255,255,0.8);text-align:center}
+.country-count{font-size:11px;color:#FFD700;font-weight:bold}
+.reset-btn{background:rgba(255,50,50,0.15);border:1px solid rgba(255,50,50,0.3);color:#ff6b6b;border-radius:10px;padding:8px;font-size:12px;cursor:pointer;font-family:inherit;width:100%}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.9);color:white;padding:8px 18px;border-radius:20px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">🎮 لوحة التحكم</div>
+  <div class="status" id="status">جاري الاتصال...</div>
+</div>
+
+<div class="countries-section">
+  <div class="countries-title">اضغط علم الدولة عند كل هدية</div>
+  <div class="countries-grid" id="countriesGrid"></div>
+</div>
+
+<button class="reset-btn" onclick="resetSession()">🔄 جلسة جديدة</button>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL='https://ujofadjgzwediczrgqjh.supabase.co';
+const SUPABASE_KEY='sb_publishable_AHqxelXqBjIwD0obji49qw_3hvgYGXx';
+
+function getFlag(code){return[...code].map(c=>String.fromCodePoint(c.charCodeAt(0)+127397)).join('')}
+
+const COUNTRIES=[
+  {name:'السعودية',code:'SA'},{name:'الكويت',code:'KW'},
+  {name:'الإمارات',code:'AE'},{name:'مصر',code:'EG'},
+  {name:'قطر',code:'QA'},{name:'عُمان',code:'OM'},
+  {name:'البحرين',code:'BH'},{name:'العراق',code:'IQ'},
+  {name:'الجزائر',code:'DZ'},{name:'المغرب',code:'MA'},
+  {name:'ليبيا',code:'LY'},
+];
+
+let scores=new Array(11).fill(0);
+let counts=new Array(11).fill(0);
+
+async function sbGet(table,filter=''){
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}${filter}`,{
+    headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}
+  });
+  return res.json();
+}
+
+async function sbPatch(table,filter,body){
+  await fetch(`${SUPABASE_URL}/rest/v1/${table}${filter}`,{
+    method:'PATCH',
+    headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
+    body:JSON.stringify(body)
+  });
+}
+
+async function init(){
+  try{
+    const data=await sbGet('game_state','?id=eq.session');
+    if(data&&data[0]) scores=data[0].scores||new Array(11).fill(0);
+    setStatus(true);
+  }catch(e){setStatus(false);}
+}
+
+function setStatus(ok){
+  const el=document.getElementById('status');
+  el.textContent=ok?'✅ متصل':'❌ خطأ';
+  el.className='status '+(ok?'ok':'err');
+}
+
+async function sendGift(idx){
+  scores[idx]=Math.min(scores[idx]+1,100);
+  if(scores[idx]>=100) scores[idx]=0;
+  counts[idx]++;
+  updateCountDisplay(idx);
+
+  try{
+    await sbPatch('game_state','?id=eq.session',{
+      scores:scores,
+      updated_at:new Date().toISOString()
+    });
+    showToast(`${getFlag(COUNTRIES[idx].code)} ${COUNTRIES[idx].name} +1`);
+  }catch(e){
+    showToast('⚠️ خطأ في الإرسال');
+  }
+}
+
+function updateCountDisplay(idx){
+  const el=document.getElementById('count'+idx);
+  if(el) el.textContent=counts[idx]>0?counts[idx]:'';
+}
+
+async function resetSession(){
+  if(!confirm('إعادة تشغيل جلسة جديدة؟')) return;
+  scores=new Array(11).fill(0);
+  counts=new Array(11).fill(0);
+  COUNTRIES.forEach((_,i)=>updateCountDisplay(i));
+  try{
+    await sbPatch('game_state','?id=eq.session',{
+      scores:scores,
+      wins:new Array(11).fill(0),
+      top_gifters:[],
+      updated_at:new Date().toISOString()
+    });
+    showToast('✅ جلسة جديدة');
+  }catch(e){showToast('خطأ');}
+}
+
+function buildCountries(){
+  document.getElementById('countriesGrid').innerHTML=COUNTRIES.map((c,i)=>`
+    <button class="country-btn" onclick="sendGift(${i})">
+      <span class="country-flag">${getFlag(c.code)}</span>
+      <span class="country-name-btn">${c.name}</span>
+      <span class="country-count" id="count${i}"></span>
+    </button>`).join('');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1500);
+}
+
+buildCountries();
+init();
+</script>
+</body>
+</html>
