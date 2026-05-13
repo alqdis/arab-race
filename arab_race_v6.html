@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سباق الدول العربية</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100vh;overflow:hidden;background:#080820;font-family:'Segoe UI',Tahoma,Arial,sans-serif;color:white;display:flex;flex-direction:column;padding:5px;gap:3px}
+.panels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;flex-shrink:0}
+.panel{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:7px;padding:3px 5px}
+.panel-title{font-size:8px;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:2px}
+.panel-row{display:flex;align-items:center;gap:3px;margin-bottom:1px}
+.medal{font-size:9px;min-width:13px}
+.pname{flex:1;font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.85)}
+.pbadge{background:rgba(255,215,0,0.2);color:#FFD700;border-radius:5px;padding:0 3px;font-size:8px;font-weight:bold}
+.pempty{font-size:8px;color:rgba(255,255,255,0.25);text-align:center}
+.lb{background:rgba(255,215,0,0.06);border:0.5px solid rgba(255,215,0,0.2);border-radius:7px;padding:3px 6px;flex-shrink:0}
+.lb-title{color:#FFD700;font-size:9px;text-align:center;margin-bottom:2px}
+.lb-grid{display:flex;flex-wrap:wrap;gap:2px;justify-content:center}
+.lb-item{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,0.06);border-radius:10px;padding:1px 5px;font-size:9px}
+.lb-wins{background:#FFD700;color:#000;border-radius:5px;padding:0 3px;font-size:8px;font-weight:bold}
+.timer-row{display:flex;justify-content:center;flex-shrink:0}
+.timer-box{background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);color:#FFD700;padding:2px 20px;border-radius:20px;font-size:12px;font-weight:bold}
+.tracks{display:flex;flex-direction:column;gap:2px;flex:1;overflow:hidden}
+.track-row{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,0.04);border-radius:6px;padding:2px 4px;flex:1}
+.rnk{font-size:8px;min-width:13px;text-align:center}
+.flg{font-size:13px;min-width:17px}
+.info{display:flex;align-items:center;gap:3px;min-width:75px}
+.cname{font-size:8px;color:rgba(255,255,255,0.9);white-space:nowrap;flex:1}
+.gift-img{width:20px;height:20px;object-fit:contain;flex-shrink:0;border-radius:3px}
+.track-wrap{flex:1;height:13px;background:rgba(255,255,255,0.07);border-radius:7px;position:relative;overflow:visible}
+.track-bar{height:100%;border-radius:7px;min-width:3px;transition:width 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative}
+.flag-mover{position:absolute;right:-10px;top:50%;transform:translateY(-50%);font-size:12px;transition:right 0.5s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none}
+.pts{font-size:8px;color:rgba(255,255,255,0.4);min-width:18px;text-align:center}
+.feed{background:rgba(0,0,0,0.3);border-radius:6px;padding:2px 7px;height:16px;overflow:hidden;flex-shrink:0}
+.feed-line{font-size:8px;color:rgba(255,255,255,0.6);animation:fadeUp 0.3s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@keyframes fadeUp{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.win-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:200;align-items:center;justify-content:center;flex-direction:column}
+.win-overlay.show{display:flex}
+.win-flag{font-size:60px;animation:popIn 0.4s ease}
+.win-name{font-size:42px;font-weight:bold;color:#FFD700;text-shadow:0 0 30px rgba(255,215,0,0.8);animation:glow 0.6s ease infinite alternate;margin:8px 0}
+.win-sub{font-size:16px;color:rgba(255,255,255,0.6)}
+.confetti-c{position:fixed;inset:0;pointer-events:none;z-index:199;display:none}
+.confetti-c.show{display:block}
+.cp{position:absolute;width:7px;height:12px;border-radius:2px;animation:fall linear forwards}
+@keyframes popIn{0%{transform:scale(0.3);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+@keyframes glow{from{text-shadow:0 0 20px rgba(255,215,0,0.6)}to{text-shadow:0 0 50px rgba(255,215,0,1),0 0 80px rgba(255,150,0,0.6)}}
+@keyframes fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+
+<div class="panels">
+  <div class="panel"><div class="panel-title">🎁 أكثر المرسلين</div><div id="topGifters"><div class="pempty">لا أحد بعد</div></div></div>
+  <div class="panel"><div class="panel-title">❤️ أكثر اللايكات</div><div id="topLikers"><div class="pempty">لا أحد بعد</div></div></div>
+  <div class="panel"><div class="panel-title">🔥 أعلى ستريك</div><div id="topStreak"><div class="pempty">لا أحد بعد</div></div></div>
+</div>
+
+<div class="lb">
+  <div class="lb-title">🏆 لوحة انتصارات الدول</div>
+  <div class="lb-grid" id="lbGrid"><span style="font-size:9px;color:rgba(255,255,255,0.3)">ابدأ السباق!</span></div>
+</div>
+
+<div class="timer-row"><div class="timer-box" id="timer">05:00</div></div>
+<div class="tracks" id="tracks"></div>
+<div class="feed"><div class="feed-line" id="feedLine">أرسل هديتك لتحريك علم بلدك! 🎁</div></div>
+
+<div class="confetti-c" id="confetti"></div>
+<div class="win-overlay" id="winOverlay">
+  <div class="win-flag" id="winFlag"></div>
+  <div class="win-name" id="winName"></div>
+  <div class="win-sub">فازت بالجولة! 🎉</div>
+</div>
+
+<script>
+const SUPABASE_URL='https://ujofadjgzwediczrgqjh.supabase.co';
+const SUPABASE_KEY='sb_publishable_AHqxelXqBjIwD0obji49qw_3hvgYGXx';
+const BASE='https://alqdis.github.io/arab-race/';
+
+function getFlag(code){return[...code].map(c=>String.fromCodePoint(c.charCodeAt(0)+127397)).join('')}
+
+const COUNTRIES=[
+  {name:'السعودية',code:'SA',img:'sa.webp',color:'#2E7D32'},
+  {name:'الكويت',code:'KW',img:'kw.webp',color:'#C62828'},
+  {name:'الإمارات',code:'AE',img:'ae.webp',color:'#1565C0'},
+  {name:'مصر',code:'EG',img:'eg.webp',color:'#BF360C'},
+  {name:'قطر',code:'QA',img:'qa.webp',color:'#6A1B9A'},
+  {name:'عُمان',code:'OM',img:'om.webp',color:'#00695C'},
+  {name:'البحرين',code:'BH',img:'bh.webp',color:'#AD1457'},
+  {name:'العراق',code:'IQ',img:'iq.webp',color:'#4527A0'},
+  {name:'الجزائر',code:'DZ',img:'dz.webp',color:'#1A237E'},
+  {name:'المغرب',code:'MA',img:'ma.webp',color:'#B71C1C'},
+  {name:'ليبيا',code:'LY',img:'ly.webp',color:'#006064'},
+  {name:'سوريا',code:'SY',img:'sy.webp',color:'#4E342E'},
+  {name:'لبنان',code:'LB',img:'lb.webp',color:'#1B5E20'},
+  {name:'الأردن',code:'JO',img:'jo.webp',color:'#E65100'},
+  {name:'فلسطين',code:'PS',img:'ps.webp',color:'#37474F'},
+  {name:'تونس',code:'TN',img:'tn.webp',color:'#880E4F'},
+];
+
+const MAX=100;
+let scores=new Array(16).fill(0);
+let wins=new Array(16).fill(0);
+let prevScores=new Array(16).fill(0);
+let seconds=300;
+let busy=false;
+const medals=['🥇','🥈','🥉'];
+
+// ===== SUPABASE POLLING =====
+async function fetchState(){
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/game_state?id=eq.session`,{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}
+    });
+    const data=await res.json();
+    if(data&&data[0]){
+      const newScores=data[0].scores||new Array(16).fill(0);
+      const newWins=data[0].wins||new Array(16).fill(0);
+
+      // Check for wins
+      newScores.forEach((s,i)=>{
+        if(s===0 && prevScores[i]>50 && !busy){
+          wins[i]=newWins[i];
+          triggerWin(i);
+        }
+      });
+
+      // Check for changes
+      newScores.forEach((s,i)=>{
+        if(s!==scores[i]){
+          scores[i]=s;
+          updateBar(i);
+        }
+      });
+
+      wins=newWins;
+      prevScores=[...newScores];
+      renderLB();
+    }
+  }catch(e){}
+}
+
+function updateBar(i){
+  const pct=Math.min((scores[i]/MAX)*100,100);
+  const bar=document.getElementById('bar'+i);
+  const pts=document.getElementById('pts'+i);
+  if(bar)bar.style.width=pct+'%';
+  if(pts)pts.textContent=scores[i];
+  updateRanks();
+}
+
+// ===== RENDER =====
+function renderLB(){
+  const grid=document.getElementById('lbGrid');
+  const sorted=COUNTRIES.map((c,i)=>({c,w:wins[i]})).filter(x=>x.w>0).sort((a,b)=>b.w-a.w).slice(0,10);
+  if(!sorted.length){grid.innerHTML='<span style="font-size:9px;color:rgba(255,255,255,0.3)">ابدأ السباق!</span>';return;}
+  grid.innerHTML=sorted.map((x,r)=>`<div class="lb-item"><span>${medals[r]||'🏅'}</span><span>${getFlag(x.c.code)}</span><span>${x.c.name}</span><span class="lb-wins">${x.w}</span></div>`).join('');
+}
+
+function renderTracks(){
+  document.getElementById('tracks').innerHTML=COUNTRIES.map((c,i)=>`
+    <div class="track-row">
+      <div class="rnk" id="rank${i}">-</div>
+      <div class="flg">${getFlag(c.code)}</div>
+      <div class="info">
+        <span class="cname">${c.name}</span>
+        <img class="gift-img" src="${BASE}${c.img}" alt="${c.name}">
+      </div>
+      <div class="track-wrap">
+        <div class="track-bar" id="bar${i}" style="width:0%;background:${c.color}">
+          <span class="flag-mover">${getFlag(c.code)}</span>
+        </div>
+      </div>
+      <div class="pts" id="pts${i}">0</div>
+    </div>`).join('');
+  updateRanks();
+}
+
+function updateRanks(){
+  scores.map((s,i)=>({s,i})).sort((a,b)=>b.s-a.s).forEach((item,rank)=>{
+    const el=document.getElementById('rank'+item.i);
+    if(el)el.textContent=medals[rank]||(rank+1);
+  });
+}
+
+// ===== WIN =====
+function triggerWin(idx){
+  busy=true;
+  spawnConfetti();
+  const ov=document.getElementById('winOverlay');
+  document.getElementById('winFlag').textContent=getFlag(COUNTRIES[idx].code);
+  document.getElementById('winName').textContent=COUNTRIES[idx].name;
+  ov.classList.add('show');
+  setTimeout(()=>{
+    ov.classList.remove('show');
+    document.getElementById('confetti').classList.remove('show');
+    document.getElementById('confetti').innerHTML='';
+    busy=false;
+  },3000);
+}
+
+function spawnConfetti(){
+  const c=document.getElementById('confetti');
+  c.innerHTML='';c.classList.add('show');
+  const colors=['#FFD700','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#DDA0DD'];
+  for(let i=0;i<50;i++){
+    const el=document.createElement('div');el.className='cp';
+    el.style.left=Math.random()*100+'vw';
+    el.style.background=colors[Math.floor(Math.random()*colors.length)];
+    el.style.animationDuration=(1.5+Math.random()*2)+'s';
+    el.style.animationDelay=Math.random()*0.8+'s';
+    c.appendChild(el);
+  }
+}
+
+// ===== TIMER =====
+setInterval(()=>{
+  seconds=seconds>0?seconds-1:300;
+  const m=Math.floor(seconds/60).toString().padStart(2,'0');
+  const s=(seconds%60).toString().padStart(2,'0');
+  document.getElementById('timer').textContent=m+':'+s;
+},1000);
+
+// ===== POLL SUPABASE every 1 second =====
+renderTracks();
+renderLB();
+fetchState();
+setInterval(fetchState, 1000);
+</script>
+</body>
+</html>
