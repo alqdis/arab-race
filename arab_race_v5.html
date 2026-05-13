@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سباق الدول العربية</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100vh;overflow:hidden;background:#080820;font-family:'Segoe UI',Tahoma,Arial,sans-serif;color:white;display:flex;flex-direction:column;padding:5px;gap:3px}
+.panels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;flex-shrink:0}
+.panel{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:7px;padding:3px 5px}
+.panel-title{font-size:8px;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:2px}
+.panel-row{display:flex;align-items:center;gap:3px;margin-bottom:1px}
+.medal{font-size:9px;min-width:13px}
+.pname{flex:1;font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.85)}
+.pbadge{background:rgba(255,215,0,0.2);color:#FFD700;border-radius:5px;padding:0 3px;font-size:8px;font-weight:bold}
+.sbadge{background:rgba(255,100,0,0.2);color:#FF8C00;border-radius:5px;padding:0 3px;font-size:8px;font-weight:bold}
+.pempty{font-size:8px;color:rgba(255,255,255,0.25);text-align:center}
+.lb{background:rgba(255,215,0,0.06);border:0.5px solid rgba(255,215,0,0.2);border-radius:7px;padding:3px 6px;flex-shrink:0}
+.lb-title{color:#FFD700;font-size:9px;text-align:center;margin-bottom:2px}
+.lb-grid{display:flex;flex-wrap:wrap;gap:2px;justify-content:center}
+.lb-item{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,0.06);border-radius:10px;padding:1px 5px;font-size:9px}
+.lb-wins{background:#FFD700;color:#000;border-radius:5px;padding:0 3px;font-size:8px;font-weight:bold}
+.timer-row{display:flex;justify-content:center;flex-shrink:0}
+.timer-box{background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);color:#FFD700;padding:2px 20px;border-radius:20px;font-size:12px;font-weight:bold}
+.tracks{display:flex;flex-direction:column;gap:2px;flex:1;overflow:hidden}
+.track-row{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,0.04);border-radius:6px;padding:2px 4px;flex:1}
+.rnk{font-size:8px;min-width:13px;text-align:center}
+.flg{font-size:13px;min-width:17px}
+.info{display:flex;align-items:center;gap:3px;min-width:75px}
+.cname{font-size:8px;color:rgba(255,255,255,0.9);white-space:nowrap;flex:1}
+.gift-img{width:20px;height:20px;object-fit:contain;flex-shrink:0;border-radius:3px}
+.track-wrap{flex:1;height:13px;background:rgba(255,255,255,0.07);border-radius:7px;position:relative;overflow:visible}
+.track-bar{height:100%;border-radius:7px;min-width:3px;transition:width 0.35s cubic-bezier(0.34,1.56,0.64,1);position:relative}
+.flag-mover{position:absolute;right:-10px;top:50%;transform:translateY(-50%);font-size:12px;transition:right 0.35s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none}
+.pts{font-size:8px;color:rgba(255,255,255,0.4);min-width:18px;text-align:center}
+.feed{background:rgba(0,0,0,0.3);border-radius:6px;padding:2px 7px;height:16px;overflow:hidden;flex-shrink:0}
+.feed-line{font-size:8px;color:rgba(255,255,255,0.6);animation:fadeUp 0.3s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@keyframes fadeUp{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.win-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:200;align-items:center;justify-content:center;flex-direction:column}
+.win-overlay.show{display:flex}
+.win-flag{font-size:60px;animation:popIn 0.4s ease}
+.win-name{font-size:42px;font-weight:bold;color:#FFD700;text-shadow:0 0 30px rgba(255,215,0,0.8);animation:glow 0.6s ease infinite alternate;margin:8px 0}
+.win-sub{font-size:16px;color:rgba(255,255,255,0.6)}
+.confetti-c{position:fixed;inset:0;pointer-events:none;z-index:199;display:none}
+.confetti-c.show{display:block}
+.cp{position:absolute;width:7px;height:12px;border-radius:2px;animation:fall linear forwards}
+@keyframes popIn{0%{transform:scale(0.3);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+@keyframes glow{from{text-shadow:0 0 20px rgba(255,215,0,0.6)}to{text-shadow:0 0 50px rgba(255,215,0,1),0 0 80px rgba(255,150,0,0.6)}}
+@keyframes fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+
+<div class="panels">
+  <div class="panel"><div class="panel-title">🎁 أكثر المرسلين</div><div id="topGifters"><div class="pempty">لا أحد بعد</div></div></div>
+  <div class="panel"><div class="panel-title">❤️ أكثر اللايكات</div><div id="topLikers"><div class="pempty">لا أحد بعد</div></div></div>
+  <div class="panel"><div class="panel-title">🔥 أعلى ستريك</div><div id="topStreak"><div class="pempty">لا أحد بعد</div></div></div>
+</div>
+
+<div class="lb">
+  <div class="lb-title">🏆 لوحة انتصارات الدول</div>
+  <div class="lb-grid" id="lbGrid"><span style="font-size:9px;color:rgba(255,255,255,0.3)">ابدأ السباق!</span></div>
+</div>
+
+<div class="timer-row"><div class="timer-box" id="timer">05:00</div></div>
+
+<div class="tracks" id="tracks"></div>
+
+<div class="feed"><div class="feed-line" id="feedLine">أرسل هديتك لتحريك علم بلدك! 🎁</div></div>
+
+<div class="confetti-c" id="confetti"></div>
+<div class="win-overlay" id="winOverlay">
+  <div class="win-flag" id="winFlag"></div>
+  <div class="win-name" id="winName"></div>
+  <div class="win-sub">فازت بالجولة! 🎉</div>
+</div>
+
+<script>
+function getFlag(code){return[...code].map(c=>String.fromCodePoint(c.charCodeAt(0)+127397)).join('')}
+
+// الصور من GitHub Pages نفس المجلد
+const BASE = 'https://alqdis.github.io/arab-race/';
+
+const COUNTRIES=[
+  {name:'السعودية', code:'SA', gift:'أحب السعودية', img:'sa.webp',  color:'#2E7D32'},
+  {name:'الكويت',   code:'KW', gift:'جبتها صح GG',  img:'kw.webp',  color:'#C62828'},
+  {name:'الإمارات', code:'AE', gift:'روز',           img:'ae.webp',  color:'#1565C0'},
+  {name:'مصر',      code:'EG', gift:'أحبني',         img:'eg.webp',  color:'#BF360C'},
+  {name:'قطر',      code:'QA', gift:'أحبك كثيراً',   img:'qa.webp',  color:'#6A1B9A'},
+  {name:'عُمان',    code:'OM', gift:'نغمة فرح',      img:'om.webp',  color:'#00695C'},
+  {name:'البحرين',  code:'BH', gift:'TikTok',        img:'bh.webp',  color:'#AD1457'},
+  {name:'العراق',   code:'IQ', gift:'يالا يا حبيبي', img:'iq.webp',  color:'#4527A0'},
+  {name:'الجزائر',  code:'DZ', gift:'عصا مضيئة',    img:'dz.webp',  color:'#1A237E'},
+  {name:'المغرب',   code:'MA', gift:'أحب المغرب',    img:'ma.webp',  color:'#B71C1C'},
+  {name:'ليبيا',    code:'LY', gift:'آيس كريم',      img:'ly.webp',  color:'#006064'},
+  {name:'سوريا',    code:'SY', gift:'أحبك كثيراً',   img:'sy.webp',  color:'#4E342E'},
+  {name:'لبنان',    code:'LB', gift:'مزاح خفيف',     img:'lb.webp',  color:'#1B5E20'},
+  {name:'الأردن',   code:'JO', gift:'قطعة كعك',      img:'jo.webp',  color:'#E65100'},
+  {name:'فلسطين',   code:'PS', gift:'طرب قديم',      img:'ps.webp',  color:'#37474F'},
+  {name:'تونس',     code:'TN', gift:'طرب قديم',      img:'tn.webp',  color:'#880E4F'},
+];
+
+const MAX=100,STEP=1;
+let scores=new Array(COUNTRIES.length).fill(0);
+let wins=new Array(COUNTRIES.length).fill(0);
+let gifters={},likers={},streaks={},lastGifter=null;
+let seconds=300,busy=false;
+const NAMES=['أحمد','فاطمة','محمد','سارة','خالد','نورة','علي','منى','عمر','ريم','بدر','هند'];
+const rand=a=>a[Math.floor(Math.random()*a.length)];
+const medals=['🥇','🥈','🥉'];
+
+function recordGift(name){
+  gifters[name]=(gifters[name]||0)+1;
+  if(!streaks[name])streaks[name]={current:0,best:0};
+  if(lastGifter===name)streaks[name].current++;
+  else{if(lastGifter&&streaks[lastGifter])streaks[lastGifter].current=0;streaks[name].current=1;}
+  if(streaks[name].current>streaks[name].best)streaks[name].best=streaks[name].current;
+  lastGifter=name;
+  renderGifters();renderStreak();
+}
+function recordLike(name){likers[name]=(likers[name]||0)+1;renderLikers();}
+function topN(obj,n){return Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,n);}
+
+function renderGifters(){
+  const top=topN(gifters,3),el=document.getElementById('topGifters');
+  if(!top.length){el.innerHTML='<div class="pempty">لا أحد بعد</div>';return;}
+  el.innerHTML=top.map(([n,c],i)=>`<div class="panel-row"><span class="medal">${medals[i]}</span><span class="pname">@${n}</span><span class="pbadge">${c}</span></div>`).join('');
+}
+function renderLikers(){
+  const top=topN(likers,3),el=document.getElementById('topLikers');
+  if(!top.length){el.innerHTML='<div class="pempty">لا أحد بعد</div>';return;}
+  el.innerHTML=top.map(([n,c],i)=>`<div class="panel-row"><span class="medal">${medals[i]}</span><span class="pname">@${n}</span><span class="pbadge">${c}</span></div>`).join('');
+}
+function renderStreak(){
+  const top=Object.entries(streaks).sort((a,b)=>b[1].best-a[1].best).slice(0,3);
+  const el=document.getElementById('topStreak');
+  if(!top.length){el.innerHTML='<div class="pempty">لا أحد بعد</div>';return;}
+  el.innerHTML=top.map(([n,s],i)=>`<div class="panel-row"><span class="medal">${medals[i]}</span><span class="pname">@${n}</span><span class="sbadge">🔥${s.best}</span></div>`).join('');
+}
+
+function renderLB(){
+  const grid=document.getElementById('lbGrid');
+  const sorted=COUNTRIES.map((c,i)=>({c,w:wins[i]})).filter(x=>x.w>0).sort((a,b)=>b.w-a.w).slice(0,10);
+  if(!sorted.length){grid.innerHTML='<span style="font-size:9px;color:rgba(255,255,255,0.3)">ابدأ السباق!</span>';return;}
+  grid.innerHTML=sorted.map((x,r)=>`<div class="lb-item"><span>${medals[r]||'🏅'}</span><span>${getFlag(x.c.code)}</span><span>${x.c.name}</span><span class="lb-wins">${x.w}</span></div>`).join('');
+}
+
+function renderTracks(){
+  document.getElementById('tracks').innerHTML=COUNTRIES.map((c,i)=>{
+    const pct=Math.min((scores[i]/MAX)*100,100);
+    return`<div class="track-row">
+      <div class="rnk" id="rank${i}">-</div>
+      <div class="flg">${getFlag(c.code)}</div>
+      <div class="info">
+        <span class="cname">${c.name}</span>
+        <img class="gift-img" src="${BASE}${c.img}" alt="${c.gift}" title="${c.gift}">
+      </div>
+      <div class="track-wrap">
+        <div class="track-bar" id="bar${i}" style="width:${pct}%;background:${c.color}">
+          <span class="flag-mover">${getFlag(c.code)}</span>
+        </div>
+      </div>
+      <div class="pts" id="pts${i}">${scores[i]}</div>
+    </div>`;
+  }).join('');
+  updateRanks();
+}
+
+function updateRanks(){
+  scores.map((s,i)=>({s,i})).sort((a,b)=>b.s-a.s).forEach((item,rank)=>{
+    const el=document.getElementById('rank'+item.i);
+    if(el)el.textContent=medals[rank]||(rank+1);
+  });
+}
+
+function addScore(idx,senderName){
+  if(busy)return;
+  const name=senderName||rand(NAMES);
+  recordGift(name);
+  scores[idx]=Math.min(scores[idx]+STEP,MAX);
+  const pct=(scores[idx]/MAX)*100;
+  const bar=document.getElementById('bar'+idx);
+  const pts=document.getElementById('pts'+idx);
+  if(bar)bar.style.width=pct+'%';
+  if(pts)pts.textContent=scores[idx];
+  updateRanks();
+  setFeed(idx,name);
+  if(scores[idx]>=MAX)triggerWin(idx);
+}
+
+function triggerWin(idx){
+  busy=true;wins[idx]++;renderLB();
+  spawnConfetti();
+  const ov=document.getElementById('winOverlay');
+  document.getElementById('winFlag').textContent=getFlag(COUNTRIES[idx].code);
+  document.getElementById('winName').textContent=COUNTRIES[idx].name;
+  ov.classList.add('show');
+  setTimeout(()=>{
+    ov.classList.remove('show');
+    document.getElementById('confetti').classList.remove('show');
+    document.getElementById('confetti').innerHTML='';
+    scores[idx]=0;
+    const bar=document.getElementById('bar'+idx);
+    const pts=document.getElementById('pts'+idx);
+    if(bar)bar.style.width='0%';
+    if(pts)pts.textContent='0';
+    updateRanks();busy=false;
+  },3000);
+}
+
+function spawnConfetti(){
+  const c=document.getElementById('confetti');
+  c.innerHTML='';c.classList.add('show');
+  const colors=['#FFD700','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#DDA0DD'];
+  for(let i=0;i<50;i++){
+    const el=document.createElement('div');el.className='cp';
+    el.style.left=Math.random()*100+'vw';
+    el.style.background=colors[Math.floor(Math.random()*colors.length)];
+    el.style.animationDuration=(1.5+Math.random()*2)+'s';
+    el.style.animationDelay=Math.random()*0.8+'s';
+    c.appendChild(el);
+  }
+}
+
+function setFeed(idx,name){
+  const el=document.getElementById('feedLine');
+  el.textContent=`@${name} أرسل ${COUNTRIES[idx].gift} لدعم ${COUNTRIES[idx].name} ${getFlag(COUNTRIES[idx].code)}`;
+  el.style.animation='none';void el.offsetWidth;el.style.animation='fadeUp 0.3s ease';
+}
+
+setInterval(()=>{
+  seconds=seconds>0?seconds-1:300;
+  const m=Math.floor(seconds/60).toString().padStart(2,'0');
+  const s=(seconds%60).toString().padStart(2,'0');
+  document.getElementById('timer').textContent=m+':'+s;
+},1000);
+
+setInterval(()=>{if(Math.random()<0.3)recordLike(rand(NAMES));},5000);
+
+window.addEventListener('message',(event)=>{
+  try{
+    const data=typeof event.data==='string'?JSON.parse(event.data):event.data;
+    if(!data||!data.type)return;
+    if(data.type==='gift'){
+      const gName=(data.giftName||'').toLowerCase().trim();
+      const sender=data.username||rand(NAMES);
+      const map={
+        'SA':['أحب السعودية','love saudi','ksa'],
+        'KW':['جبتها صح','gg'],
+        'AE':['روز','rose'],
+        'EG':['أحبني','love me'],
+        'QA':['أحبك كثيراً','love you so much'],
+        'OM':['نغمة فرح','melody'],
+        'BH':['tiktok','تيك توك'],
+        'IQ':['يالا يا حبيبي','yalla habibi'],
+        'DZ':['عصا مضيئة','glowing stick'],
+        'MA':['أحب المغرب','love morocco'],
+        'LY':['آيس كريم','ice cream'],
+        'SY':['أحبك كثيراً','love you so much'],
+        'LB':['مزاح خفيف','light humor'],
+        'JO':['قطعة كعك','piece of cake'],
+        'PS':['طرب قديم','old music'],
+        'TN':['طرب قديم','old music'],
+      };
+      const idx=COUNTRIES.findIndex(c=>(map[c.code]||[]).some(k=>gName.includes(k)));
+      if(idx>=0)addScore(idx,sender);
+    }
+    if(data.type==='like')recordLike(data.username||rand(NAMES));
+  }catch(e){}
+});
+
+renderLB();renderTracks();
+</script>
+</body>
+</html>
